@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Agent — Interactive Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+    .banner {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      max-width: 720px;
+      width: 100%;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .app {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 720px;
+      min-height: 640px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 24px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .header h1 { font-size: 16px; font-weight: 600; }
+    .badge { font-size: 12px; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 999px; }
+    .content { flex: 1; padding: 20px; overflow-y: auto; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .info-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    label { font-size: 13px; font-weight: 500; color: #475569; display: block; margin-bottom: 8px; }
+    textarea, input[type="text"] {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    textarea { min-height: 100px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+    .chip {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .chip:hover { background: #e2e8f0; }
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .9; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+    .btn-escalate { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .footer-note {
+      padding: 12px 20px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 12px;
+      color: #64748b;
+      background: #f8fafc;
+      text-align: center;
+    }
+    .confidence {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .confidence.medium { background: #fef3c7; color: #92400e; }
+    .confidence.low { background: #fee2e2; color: #991b1b; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #64748b;
+      margin: 20px 0 10px;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .summary li { margin: 8px 0 8px 20px; font-size: 14px; line-height: 1.5; }
+    .summary p { font-size: 14px; line-height: 1.5; color: #475569; margin-top: 12px; }
+    .cite { color: #2563eb; font-size: 12px; cursor: pointer; text-decoration: underline; }
+    .resource-row, .citation-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .resource-row:hover, .citation-row:hover { background: #f8fafc; cursor: pointer; }
+    .arrow { color: #94a3b8; }
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.3);
+      z-index: 10;
+      justify-content: flex-end;
+    }
+    .drawer-overlay.open { display: flex; }
+    .drawer {
+      background: #fff;
+      width: 100%;
+      max-width: 420px;
+      height: 100%;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: -4px 0 24px rgba(0,0,0,.1);
+    }
+    .drawer h2 { font-size: 16px; margin-bottom: 4px; }
+    .drawer .meta { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+    .quote {
+      background: #fffbeb;
+      border-left: 3px solid #f59e0b;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+    }
+    .warning-box {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 400;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .context-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      max-width: 720px;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .nav-tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      font-size: 11px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #64748b;
+    }
+    .nav-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .back-link { color: #2563eb; font-size: 13px; cursor: pointer; margin-bottom: 12px; display: inline-block; }
+    .success-msg {
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+      color: #065f46;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    Portfolio interactive demo · Mikin Macwan LLC · Fictional sample data (G-001) · Not a production system
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-screen="query">1. Query</div>
+    <div class="nav-tab" data-screen="results">2. Results</div>
+    <div class="nav-tab" data-screen="escalation">3. Escalate</div>
+    <div class="nav-tab" data-screen="conflict">4. Conflict</div>
+  </div>
+
+  <div class="app">
+    <div class="header">
+      <h1>Knowledge Agent</h1>
+      <span class="badge">Frontline · Region B</span>
+    </div>
+
+    <!-- Screen 1: Query -->
+    <div class="content screen active" id="screen-query">
+      <div class="info-banner">
+        <strong>This agent retrieves approved information. It does not make decisions.</strong>
+      </div>
+      <label>Your question</label>
+      <textarea id="query-input">19-year-old caller in Region B says they've been couch surfing for two weeks and want transitional housing options. What approved programs should I review?</textarea>
+      <div class="section-title">Example queries</div>
+      <div class="chips">
+        <span class="chip" data-query="Transitional housing ages 18–24, Region B">Transitional housing 18–24</span>
+        <span class="chip" data-query="Food pantry schedule Region B this week">Food pantry schedule</span>
+        <span class="chip" data-query="DV safe shelter referral steps">DV shelter referral</span>
+      </div>
+      <button class="btn btn-primary" id="btn-submit">Submit query</button>
+      <p style="font-size:12px;color:#94a3b8;margin-top:16px">Do not paste client names, case IDs, or contact information.</p>
+    </div>
+
+    <!-- Screen 2: Results -->
+    <div class="content screen" id="screen-results">
+      <span class="back-link" id="back-query">← New query</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <span class="confidence medium">🟡 Medium confidence · 0.68</span>
+      </div>
+      <div class="section-title">Summary</div>
+      <ul class="summary">
+        <li><strong>Program Horizon</strong> — transitional housing, ages 18–24, Region B connection <span class="cite" data-cite="1">[1]</span></li>
+        <li><strong>Crisis shelter</strong> — if immediate need tonight, use Housing Line per crisis protocol <span class="cite" data-cite="2">[2]</span></li>
+        <li>Verify bed availability before sharing options with the caller.</li>
+      </ul>
+      <p>Staff must complete standard intake. This summary does not guarantee placement.</p>
+
+      <div class="section-title">Recommended resources</div>
+      <div class="resource-row" data-cite="1">Program Horizon · Transitional · Region B <span class="arrow">→</span></div>
+      <div class="resource-row" data-cite="2">Housing Line · Crisis beds · 24/7 <span class="arrow">→</span></div>
+
+      <div class="section-title">Eligibility (from sources)</div>
+      <ul class="summary">
+        <li>Region B residency or documented connection</li>
+        <li>Age 18–24 for Program Horizon <span class="cite" data-cite="1">[1]</span></li>
+      </ul>
+
+      <div class="section-title">Contact</div>
+      <ul class="summary">
+        <li>Housing Line: 800-555-0142 (24/7) <span class="cite" data-cite="2">[2]</span></li>
+        <li>Program Horizon intake: Mon–Fri 9 AM – 5 PM <span class="cite" data-cite="1">[1]</span></li>
+      </ul>
+
+      <div class="section-title">Citations</div>
+      <div class="citation-row" data-cite="1">[1] Emergency Housing Resource Guide §2.4 <span class="arrow">→</span></div>
+      <div class="citation-row" data-cite="2">[2] Active Escalation SOP §6.1 <span class="arrow">→</span></div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="btn-helpful">👍 Helpful</button>
+        <button class="btn btn-secondary">👎 Not helpful</button>
+        <button class="btn btn-escalate" id="btn-escalate">Escalate to supervisor</button>
+      </div>
+    </div>
+
+    <!-- Screen 3: Escalation (optional path) -->
+    <div class="content screen" id="screen-escalation">
+      <span class="back-link" id="back-results">← Back to results</span>
+      <h2 style="font-size:18px;margin-bottom:16px">Escalate for human review</h2>
+      <div class="warning-box">
+        <strong>Why escalation is suggested</strong><br>
+        Optional — confidence 0.68 is above threshold. Escalate if you want supervisor confirmation before sharing bed availability language.
+      </div>
+      <div class="section-title">Reason (required)</div>
+      <div class="radio-group">
+        <label><input type="radio" name="reason" value="low"> Low confidence</label>
+        <label><input type="radio" name="reason" value="conflict"> Conflicting sources</label>
+        <label><input type="radio" name="reason" value="other" checked> Other</label>
+      </div>
+      <label style="margin-top:16px">Your question</label>
+      <input type="text" value="Transitional housing for 19-year-old couch surfing, Region B">
+      <label style="margin-top:12px">Notes for reviewer (optional)</label>
+      <input type="text" placeholder="Caller on brief hold — need quick confirmation">
+      <div class="section-title">Attached context</div>
+      <div class="context-box">
+        • Top chunks: RD-001 §2.4 (0.89), PS-001 §6.1 (0.84)<br>
+        • Confidence: 0.68 (Medium)<br>
+        • Citations: [1] Emergency Housing Guide, [2] Escalation SOP
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-submit-esc">Submit escalation</button>
+        <button class="btn btn-secondary" id="cancel-esc">Cancel</button>
+      </div>
+      <div id="esc-success" class="success-msg" style="display:none;margin-top:16px">
+        Escalation submitted · Ticket #ESC-2026-0847<br>
+        <small>Typical response: ~15 min during shift</small>
+      </div>
+    </div>
+
+    <!-- Screen 4: Conflict scenario -->
+    <div class="content screen" id="screen-conflict">
+      <span class="back-link" id="back-query-conflict">← New query</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <span class="confidence low">🔴 Low confidence · 0.42</span>
+      </div>
+      <div class="warning-box">
+        <strong>Conflicting sources detected.</strong> Two approved documents show different income limits. Escalate before citing either to the caller.
+      </div>
+      <div class="section-title">Summary</div>
+      <ul class="summary">
+        <li>RD-001 (Apr 2026): income limit $2,400/mo for household of 3 <span class="cite" data-cite="c1">[1]</span></li>
+        <li>RD-009 (Aug 2025): income limit $2,200/mo for household of 3 <span class="cite" data-cite="c2">[2]</span></li>
+      </ul>
+      <p><strong>Do not merge into a single eligibility claim.</strong> Supervisor must confirm which version applies.</p>
+      <div class="section-title">Citations</div>
+      <div class="citation-row" data-cite="c1">[1] Emergency Housing Guide §2.4 (2026-04-15) <span class="arrow">→</span></div>
+      <div class="citation-row" data-cite="c2">[2] Benefits Eligibility §5.1 (2025-08-12) <span class="arrow">→</span></div>
+      <div class="btn-row">
+        <button class="btn btn-escalate" id="btn-escalate-conflict">Escalate to supervisor</button>
+      </div>
+    </div>
+
+    <div class="footer-note">You decide what to share with the caller.</div>
+  </div>
+
+  <!-- Citation drawer -->
+  <div class="drawer-overlay" id="drawer">
+    <div class="drawer">
+      <span class="back-link" id="close-drawer">✕ Close</span>
+      <h2 id="drawer-title">Emergency Housing Resource Guide</h2>
+      <div class="meta" id="drawer-meta">Resource Directory · Region B · Last reviewed: 2026-04-15</div>
+      <div class="section-title">Why this source</div>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:12px" id="drawer-why">Retrieved because it matches transitional housing for ages 18–24 in Region B. Relevance score: 0.91.</p>
+      <div class="section-title">Quoted evidence — §2.4</div>
+      <div class="quote" id="drawer-quote">Program Horizon serves adults ages 18–24 with documented Region B connection. Transitional beds require intake Mon–Fri 9–5. Bed availability varies daily — never guarantee placement.</div>
+      <button class="btn btn-secondary" style="width:100%;margin-top:12px">Open approved source</button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px">Report outdated</button>
+    </div>
+  </div>
+
+  <script>
+    const cites = {
+      '1': { title: 'Emergency Housing Resource Guide', meta: 'Resource Directory · Region B · Last reviewed: 2026-04-15', why: 'Matches transitional housing ages 18–24 Region B. Score: 0.91.', quote: 'Program Horizon serves adults ages 18–24 with documented Region B connection. Transitional beds require intake Mon–Fri 9–5. Bed availability varies daily — never guarantee placement.' },
+      '2': { title: 'Active Escalation SOP', meta: 'Policy SOP · All regions · Last reviewed: 2026-04-01', why: 'Covers crisis shelter verification pathway. Score: 0.84.', quote: 'Before promising any bed: contact Housing Line (800-555-0142). Never guarantee placement.' },
+      'c1': { title: 'Emergency Housing Resource Guide §2.4', meta: 'Rev 2026-04-15', why: 'Income limit for Horizon program.', quote: 'Household of 3: gross monthly income at or below $2,400.' },
+      'c2': { title: 'Benefits Eligibility Overview §5.1', meta: 'Rev 2025-08-12 · STALE', why: 'Conflicting income threshold.', quote: 'Community Bridge utility assistance: household of 3 limit $2,200/mo gross.' }
+    };
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+      document.querySelectorAll('.nav-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.screen === id || (id === 'escalation' && t.dataset.screen === 'results'));
+      });
+    }
+
+    document.getElementById('btn-submit').onclick = () => showScreen('results');
+    document.getElementById('back-query').onclick = () => showScreen('query');
+    document.getElementById('btn-escalate').onclick = () => showScreen('escalation');
+    document.getElementById('back-results').onclick = () => showScreen('results');
+    document.getElementById('cancel-esc').onclick = () => showScreen('results');
+    document.getElementById('btn-submit-esc').onclick = () => {
+      document.getElementById('esc-success').style.display = 'block';
+    };
+    document.getElementById('back-query-conflict').onclick = () => showScreen('query');
+    document.getElementById('btn-escalate-conflict').onclick = () => showScreen('escalation');
+
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.onclick = () => showScreen(tab.dataset.screen);
+    });
+
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.onclick = () => { document.getElementById('query-input').value = chip.dataset.query; };
+    });
+
+    function openDrawer(id) {
+      const c = cites[id];
+      if (!c) return;
+      document.getElementById('drawer-title').textContent = c.title;
+      document.getElementById('drawer-meta').textContent = c.meta;
+      document.getElementById('drawer-why').textContent = c.why;
+      document.getElementById('drawer-quote').textContent = c.quote;
+      document.getElementById('drawer').classList.add('open');
+    }
+
+    document.querySelectorAll('.cite, .citation-row, .resource-row').forEach(el => {
+      el.onclick = () => openDrawer(el.dataset.cite);
+    });
+    document.getElementById('close-drawer').onclick = () => document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawer').onclick = e => { if (e.target.id === 'drawer') document.getElementById('drawer').classList.remove('open'); };
+
+    document.getElementById('btn-helpful').onclick = function() {
+      this.textContent = '✓ Thanks for the feedback';
+      this.disabled = true;
+    };
+  </script>
+</body>
+</html>
