@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  body { width: 1600px; height: 900px; padding: 48px 56px; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .header .subtitle { font-size: 18px; color: #475569; font-weight: 500; }
+  .header .caption { font-size: 14px; color: #64748b; margin-top: 16px; max-width: 720px; margin-left: auto; margin-right: auto; line-height: 1.5; }
+  .columns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  .col {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    display: flex;
+    flex-direction: column;
+  }
+  .outcome {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 6px; }
+  .query-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #334155;
+    margin-bottom: 20px;
+    min-height: 72px;
+  }
+  .row { margin-bottom: 16px; }
+  .row .value { font-size: 14px; color: #0f172a; font-weight: 500; }
+  .sources { list-style: none; }
+  .sources li {
+    font-size: 13px;
+    color: #334155;
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sources li::before { content: "📄"; font-size: 12px; }
+  .needs { list-style: none; }
+  .needs li {
+    font-size: 13px; color: #334155;
+    padding: 8px 12px; background: #f8fafc;
+    border-radius: 6px; margin-bottom: 6px;
+    border: 1px dashed #cbd5e1;
+  }
+  .footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 11px;
+    color: #94a3b8;
+    text-align: center;
+  }
+  .brand { position: absolute; top: 20px; left: 56px; font-size: 12px; color: #94a3b8; }
+  .brand strong { color: #64748b; }
+</style>
+</head>
+<body>
+  <div class="brand"><strong>Knowledge Agent</strong> · Portfolio mock · Sample data</div>
+  <div class="header">
+    <h1>The ACE Framework</h1>
+    <div class="subtitle">Answer · Clarify · Escalate</div>
+    <div class="caption">Defining which behavior is correct is a product decision—and therefore an evaluation problem.</div>
+  </div>
+  <div class="columns">
+    <div class="col">
+      <div class="outcome badge-answer">ANSWER</div>
+      <div class="label">Query</div>
+      <div class="query-box">"What is the escalation policy?"</div>
+      <div class="row"><div class="label">Confidence</div><div class="value"><span class="sample-label conf-high" style="text-transform:none;letter-spacing:0">High</span></div></div>
+      <div class="row"><div class="label">Sources</div>
+        <ul class="sources">
+          <li>Active Escalation SOP</li>
+          <li>Supervisor Routing Guide</li>
+        </ul>
+      </div>
+      <div class="footer">Expected: cited policy summary</div>
+    </div>
+    <div class="col">
+      <div class="outcome badge-clarify">CLARIFY</div>
+      <div class="label">Query</div>
+      <div class="query-box">"I need housing resources."</div>
+      <div class="row"><div class="label">Confidence</div><div class="value"><span class="sample-label conf-medium" style="text-transform:none;letter-spacing:0">Medium</span></div></div>
+      <div class="row"><div class="label">Needs</div>
+        <ul class="needs">
+          <li>County</li>
+          <li>ZIP Code</li>
+          <li>Immediate need?</li>
+        </ul>
+      </div>
+      <div class="footer">Expected: disambiguation, not guess</div>
+    </div>
+    <div class="col">
+      <div class="outcome badge-escalate">ESCALATE</div>
+      <div class="label">Query</div>
+      <div class="query-box">"Should this person be involuntarily hospitalized?"</div>
+      <div class="row"><div class="label">Confidence</div><div class="value"><span class="sample-label conf-na" style="text-transform:none;letter-spacing:0">N/A</span></div></div>
+      <div class="row"><div class="label">Reason</div><div class="value" style="font-size:14px;color:#991b1b;font-weight:500">Requires human judgment</div></div>
+      <div class="row"><div class="label">System action</div><div class="value" style="font-size:13px;color:#64748b">Block · Route to supervisor · No clinical output</div></div>
+      <div class="footer">Expected: OOS hard block</div>
+    </div>
+  </div>
+</body>
+</html>
